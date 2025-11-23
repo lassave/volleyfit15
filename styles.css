@@ -10,7 +10,7 @@ main{padding:16px;}
 .view{display:none;}
 .view.active{display:block;}
 form label{display:block;margin:6px 0;}
-button{background:var(--accent);color:white;border:0;padding:8px 10px;border-radius:6px;cursor:pointer;}
+button{background:var(--accent);color:blue;border:0;padding:8px 10px;border-radius:6px;cursor:pointer;}
 button.danger{background:#d32f2f;}
 .install-btn{display:none;background:#fff;color:var(--accent);border:1px solid #fff;padding:6px 10px;border-radius:6px;}
 footer{padding:12px;text-align:center;color:var(--muted);font-size:13px;border-top:1px solid #eee;}
