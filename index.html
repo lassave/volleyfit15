@@ -24,7 +24,7 @@
 
   <main id="app">
     <section id="view-plan" class="view active">
-      <h2>Plan de Entrenamiento - Resumen</h2>
+      <h2>Plan de Entrenamiento</h2>
       <div id="planList"></div>
     </section>
 
@@ -75,23 +75,251 @@
   </footer>
 
 <script>
+
 // --- Data (plan + nutrition) ---
 const PLAN = [
-  {day:1, title:"Tren inferior", details:"Sentadilla 4x5; Peso muerto rumano 4x6; Zancadas 3x10; Prensa 3x8; Gemelos 4x12; Saltos al cajón 4x5."},
-  {day:2, title:"Tren superior", details:"Press militar manc. 4x5; Dominadas 4x6; Remo 4x8; Press militar 3x6; Face pulls 3x15."},
-  {day:3, title:"Agilidad y potencia", details:"Escalera; Sprints 6x15m; Cambios de dirección; Drop jumps 4x4."},
-  {day:4, title:"Fuerza total", details:"Peso muerto clásico 4x4; Goblet 3x10; Fondos 3x10."},
-  {day:5, title:"Recuperación activa", details:"Bici 20-30min; Estiramientos; Trabajo de hombro."},
-  {day:6, title:"Descanso activo / técnica", details:"Trabajo técnico suave."},
-  {day:7, title:"Descanso", details:"Descanso completo o técnica muy ligera."},
-  {day:8, title:"Inferior explosivo", details:"Sentadilla con salto 4x4; Sentadilla barra 3x4 (60%); Zancadas 3x8; Gemelos 3x12."},
-  {day:9, title:"Superior explosivo", details:"Press banca velocidad 5x3; Remo 4x6; Jalón 3x8."},
-  {day:10, title:"Último día pesado", details:"Sentadilla 3x3; Peso muerto 3x3; Remo 3x5; Fondos 3x8."},
-  {day:11, title:"Pliometría y agilidad", details:"Escalera; Sprints; Saltos verticales 4x4."},
-  {day:12, title:"Técnica y movilidad", details:"Saques, recepción, desplazamientos; Estiramientos."},
-  {day:13, title:"Activación corta", details:"20min potencia baja; Saltos suaves; Core."},
-  {day:14, title:"Descanso", details:"Descanso total."},
-  {day:15, title:"Competencia", details:"Entrada en calor: movilidad + sprints cortos + saltos suaves."}
+{
+  day: 1,
+    title: "Fuerza de Tren Inferior (Enfocado en salto y estabilidad)",
+    details: `
+      <h3>Calentamiento (8 min)</h3>
+      <ul>
+        <li><input type="checkbox"> Movilidad de cadera y tobillo</li>
+        <li><input type="checkbox"> 2×15 sentadillas con peso corporal</li>
+        <li><input type="checkbox"> Skips + saltos suaves en el lugar</li>
+      </ul>
+
+      <h3>Fuerza</h3>
+      <ul>
+        <li><input type="checkbox"> Sentadilla con barra – 4×5 (80% 1RM)</li>
+        <li><input type="checkbox"> Peso muerto rumano – 4×6</li>
+        <li><input type="checkbox"> Zancadas caminando con mancuernas – 3×10 por pierna</li>
+        <li><input type="checkbox"> Prensa – 3×8</li>
+        <li><input type="checkbox"> Elevación de gemelos – 4×12</li>
+      </ul>
+
+      <h3>Potencia</h3>
+      <ul>
+        <li><input type="checkbox"> Saltos al cajón – 4×5</li>
+        <li><input type="checkbox"> Saltos laterales sobre línea – 3×20 s</li>
+      </ul>
+
+      <h3>Core estabilizador</h3>
+      <ul>
+        <li><input type="checkbox"> Plancha frontal – 3×40 s</li>
+        <li><input type="checkbox"> Plancha lateral – 3×30 s por lado</li>
+      </ul>
+    `
+  },
+
+  {
+    day: 2,
+    title: "Tren Superior + Hombros (Prevención de lesiones)",
+    details: `
+      <h3>Calentamiento</h3>
+      <ul>
+        <li><input type="checkbox"> Rotadores externos con banda – 3×15</li>
+        <li><input type="checkbox"> Movilidad de hombro</li>
+      </ul>
+
+      <h3>Fuerza</h3>
+      <ul>
+        <li><input type="checkbox"> Press banca o mancuerna – 4×5</li>
+        <li><input type="checkbox"> Dominadas o jalón al pecho – 4×6</li>
+        <li><input type="checkbox"> Remo con barra – 4×6–8</li>
+        <li><input type="checkbox"> Press militar – 3×6</li>
+        <li><input type="checkbox"> Face pulls – 3×15</li>
+        <li><input type="checkbox"> Rotadores externos con mancuerna – 2×12 por brazo</li>
+      </ul>
+
+      <h3>Core</h3>
+      <ul>
+        <li><input type="checkbox"> Rueda abdominal o crunch cable – 3×10–12</li>
+      </ul>
+    `
+  },
+
+  {
+    day: 3,
+    title: "Agilidad + Potencia + Pliometría",
+    details: `
+      <h3>Agilidad</h3>
+      <ul>
+        <li><input type="checkbox"> Escalera de coordinación – 5 combinaciones × 2</li>
+        <li><input type="checkbox"> Sprints cortos 10–15 m – 6 reps</li>
+        <li><input type="checkbox"> Cambios de dirección (Z/T) – 4×20 m</li>
+      </ul>
+
+      <h3>Potencia de salto</h3>
+      <ul>
+        <li><input type="checkbox"> Drop jumps – 4×4</li>
+        <li><input type="checkbox"> Salto vertical con brazos – 4×5</li>
+        <li><input type="checkbox"> Multisaltos laterales – 3×20 s</li>
+      </ul>
+
+      <h3>Fuerza ligera</h3>
+      <ul>
+        <li><input type="checkbox"> Sentadilla frontal 3×5 (60%)</li>
+        <li><input type="checkbox"> Remo TRX – 3×12</li>
+      </ul>
+    `
+  },
+
+  {
+    day: 4,
+    title: "Fuerza Total + Movilidad",
+    details: `
+      <h3>Fuerza</h3>
+      <ul>
+        <li><input type="checkbox"> Peso muerto clásico – 4×4</li>
+        <li><input type="checkbox"> Sentadilla goblet – 3×10</li>
+        <li><input type="checkbox"> Fondos en paralelas – 3×10</li>
+        <li><input type="checkbox"> Remo con mancuerna – 3×10</li>
+        <li><input type="checkbox"> Press militar sentado – 3×8</li>
+      </ul>
+
+      <h3>Movilidad profunda (10 min)</h3>
+      <ul>
+        <li><input type="checkbox"> Cadera</li>
+        <li><input type="checkbox"> Tobillo</li>
+        <li><input type="checkbox"> Columna torácica</li>
+      </ul>
+    `
+  },
+
+  {
+    day: 5,
+    title: "Recuperación Activa",
+    details: `
+      <ul>
+        <li><input type="checkbox"> 20–30 min bici o caminata</li>
+        <li><input type="checkbox"> Estiramientos</li>
+        <li><input type="checkbox"> Trabajo de hombro preventivo</li>
+        <li><input type="checkbox"> Sauna/hielo (opcional)</li>
+      </ul>
+    `
+  },
+
+  {
+    day: 6,
+    title: "Descanso activo / Técnica",
+    details: `
+      <ul>
+        <li><input type="checkbox"> Técnica suave</li>
+        <li><input type="checkbox"> Movilidad general</li>
+      </ul>
+    `
+  },
+
+  {
+    day: 7,
+    title: "Descanso total o técnica muy ligera",
+    details: `
+      <ul>
+        <li><input type="checkbox"> Descanso absoluto</li>
+        <li><input type="checkbox"> Técnica muy suave (opcional)</li>
+      </ul>
+    `
+  },
+
+  {
+    day: 8,
+    title: "Inferior Explosivo",
+    details: `
+      <ul>
+        <li><input type="checkbox"> Sentadilla con salto – 4×4</li>
+        <li><input type="checkbox"> Sentadilla barra – 3×4 (60%)</li>
+        <li><input type="checkbox"> Zancadas – 3×8</li>
+        <li><input type="checkbox"> Gemelos – 3×12</li>
+      </ul>
+    `
+  },
+
+  {
+    day: 9,
+    title: "Superior Explosivo",
+    details: `
+      <ul>
+        <li><input type="checkbox"> Press banca velocidad – 5×3</li>
+        <li><input type="checkbox"> Remo – 4×6</li>
+        <li><input type="checkbox"> Jalón pecho – 3×8</li>
+        <li><input type="checkbox"> Press militar – 3×5</li>
+        <li><input type="checkbox"> Face pulls – 3×15</li>
+      </ul>
+    `
+  },
+
+  {
+    day: 10,
+    title: "Último Día Pesado",
+    details: `
+      <ul>
+        <li><input type="checkbox"> Sentadilla – 3×3 (70–80%)</li>
+        <li><input type="checkbox"> Peso muerto – 3×3</li>
+        <li><input type="checkbox"> Remo con barra – 3×5</li>
+        <li><input type="checkbox"> Fondos – 3×8</li>
+      </ul>
+    `
+  },
+
+  {
+    day: 11,
+    title: "Pliometría + Agilidad",
+    details: `
+      <ul>
+        <li><input type="checkbox"> Escalera – 10 min</li>
+        <li><input type="checkbox"> Sprints 6×10 m</li>
+        <li><input type="checkbox"> Saltos verticales – 4×4</li>
+        <li><input type="checkbox"> Saltos laterales – 3×20 s</li>
+      </ul>
+    `
+  },
+
+  {
+    day: 12,
+    title: "Técnica + Movilidad",
+    details: `
+      <ul>
+        <li><input type="checkbox"> Saques, recepción, desplazamientos</li>
+        <li><input type="checkbox"> Estiramientos profundos</li>
+      </ul>
+    `
+  },
+
+  {
+    day: 13,
+    title: "Activación Corta",
+    details: `
+      <ul>
+        <li><input type="checkbox"> 20 min potencia baja</li>
+        <li><input type="checkbox"> Saltos suaves</li>
+        <li><input type="checkbox"> Core</li>
+        <li><input type="checkbox"> Estiramiento</li>
+      </ul>
+    `
+  },
+
+  {
+    day: 14,
+    title: "Descanso Total",
+    details: `
+      <ul>
+        <li><input type="checkbox"> Descanso completo</li>
+      </ul>
+    `
+  },
+
+  {
+    day: 15,
+    title: "¡Competencia!",
+    details: `
+      <ul>
+        <li><input type="checkbox"> Movilidad</li>
+        <li><input type="checkbox"> Sprints cortos</li>
+        <li><input type="checkbox"> Saltos suaves</li>
+      </ul>
+    `
+  }
 ];
 
 const NUTRITION = {
@@ -112,6 +340,7 @@ function renderPlan(){
     card.innerHTML = `<h3>Día ${d.day} — ${d.title}</h3><p>${d.details}</p><button data-day="${d.day}" class="markDay">Marcar completado</button>`;
     container.appendChild(card);
   });
+  
 }
 function renderNutrition(){
   const c = q('#nutrition'); c.innerHTML='';
