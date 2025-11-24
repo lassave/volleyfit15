@@ -10,6 +10,7 @@ main{padding:16px;}
 .view{display:none;}
 .view.active{display:block;}
 form label{display:block;margin:6px 0;}
+<<<<<<< HEAD
 button{background:var(--accent);color:#1565C0;border:0;padding:8px 10px;border-radius:6px;cursor:pointer;}
 button.danger{background:#d32f2f;}
 .install-btn{display:none;background:#fff;color:var(--accent);border:1px solid #fff;padding:6px 10px;border-radius:6px;}
