@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>VolleyFit 15 — App PWA (All-in-one)</title>
+<link rel="manifest" href="manifest.json">
+<style>
+:root{--accent:#1565C0;--bg:#f6f8fb;--card:#fff}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; margin:0; background:var(--bg); color:#122;}
+.topbar{background:var(--accent); color:#fff; padding:12px 16px; display:flex; justify-content:space-between; align-items:center}
+.container{max-width:900px;margin:18px auto;padding:0 14px}
+.menu{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.menu button{background:transparent;border:0;padding:8px 12px;border-radius:8px;cursor:pointer}
+.menu button.active{background:var(--accent);color:#fff}
+.card{background:var(--card);padding:14px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.04);margin-bottom:14px}
+.ex{display:flex;align-items:center;justify-content:space-between;padding:8px 6px;border-bottom:1px solid #eef}
+.ex:last-child{border-bottom:0}
+.left{display:flex;align-items:center;gap:10px}
+.kg{width:80px;padding:6px;border-radius:6px;border:1px solid #ddd}
+.note{width:200px;padding:6px;border-radius:6px;border:1px solid #eee;background:#fafafa}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+button.btn{background:var(--accent);color:#fff;border:0;padding:8px 10px;border-radius:8px;cursor:pointer}
+button.secondary{background:#e0e0e0;color:#111}
+.footer{padding:12px;text-align:center;color:#666;font-size:13px}
+@media(max-width:600px){.note{width:110px}.kg{width:60px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div><strong>VolleyFit 15</strong></div>
+  <button id="installBtn" class="secondary" style="display:none">Instalar</button>
+</header>
+<div class="container">
+  <nav class="menu" id="menu"></nav>
+
+  <main id="app"></main>
+
+  <div class="controls">
+    <button id="exportAll" class="btn">Exportar todo (JSON)</button>
+    <button id="importAll" class="btn secondary">Importar (JSON)</button>
+    <input type="file" id="importFile" accept="application/json" style="display:none">
+    <button id="clearAll" class="btn secondary">Limpiar todo</button>
+  </div>
+
+  <div class="card">
+    <small id="status">Los datos se guardan localmente en tu navegador.</small>
+  </div>
+
+  <footer class="footer">PWA demo — Listo para GitHub Pages. Abrí en Safari y "Añadir a pantalla de inicio" para instalar en iPhone.</footer>
+</div>
+
+<script>
+// ===== PLAN DATA (15 días) =====
+const PLAN = [
+  {day:1,title:'Fuerza Tren Inferior',warmup:['Movilidad de cadera y tobillo','2×15 sentadillas con peso corporal','Skips + saltos suaves en el lugar'],exercises:[{name:'Sentadilla con barra',sets:'4×5 (80% 1RM)'},{name:'Peso muerto rumano',sets:'4×6'},{name:'Zancadas caminando con mancuernas',sets:'3×10 por pierna'},{name:'Prensa',sets:'3×8'},{name:'Elevación de gemelos',sets:'4×12'}],power:['Saltos al cajón: 4×5','Saltos laterales sobre línea: 3×20 sec'],core:['Plancha frontal: 3×40 sec','Plancha lateral: 3×30 sec por lado']},
+  {day:2,title:'Tren Superior + Hombros',warmup:['Rotadores externos con banda 3×15','Movilidad de hombro'],exercises:[{name:'Press banca o mancuerna',sets:'4×5'},{name:'Dominadas o jalón al pecho',sets:'4×6'},{name:'Remo con barra',sets:'4×6–8'},{name:'Press militar',sets:'3×6'},{name:'Face pulls',sets:'3×15'},{name:'Rotadores externos con mancuerna',sets:'2×12 por brazo'}],core:['Rueda abdominal o crunch cable 3×10–12']},
+  {day:3,title:'Agilidad + Potencia + Pliometría',warmup:[],exercises:[{name:'Escalera de coordinación (5 combos × 2)','sets':''},{name:'Sprints cortos 10–15 m',sets:'6 reps'},{name:'Cambios de dirección (Z o T)',sets:'4×20 m'},{name:'Drop jumps',sets:'4×4'},{name:'Salto vertical con brazos',sets:'4×5'},{name:'Multisaltos laterales',sets:'3×20 sec'},{name:'Sentadilla frontal',sets:'3×5 (60%)'},{name:'Remo TRX',sets:'3×12'}]},
+  {day:4,title:'Fuerza Total + Movilidad',warmup:[],exercises:[{name:'Peso muerto clásico',sets:'4×4'},{name:'Sentadilla goblet',sets:'3×10'},{name:'Fondos en paralelas',sets:'3×10'},{name:'Remo con mancuerna',sets:'3×10'},{name:'Press militar sentado',sets:'3×8'}],notes:['Movilidad profunda: 10 min (cadera, tobillo, columna torácica)']},
+  {day:5,title:'Recuperación Activa',warmup:[],exercises:[{name:'Bici o caminata 20–30 min',sets:''},{name:'Estiramientos',sets:''},{name:'Trabajo de hombro preventivo',sets:''}]},
+  {day:6,title:'Descanso\/Técnica',warmup:[],exercises:[{name:'Técnica suave (toques, recepciones)',sets:''}]},
+  {day:7,title:'Descanso',warmup:[],exercises:[{name:'Descanso o técnica muy ligera',sets:''}]},
+  {day:8,title:'Inferior explosivo',warmup:[],exercises:[{name:'Sentadilla con salto',sets:'4×4'},{name:'Sentadilla con barra',sets:'3×4 (60%)'},{name:'Zancadas',sets:'3×8'},{name:'Gemelos',sets:'3×12'}]},
+  {day:9,title:'Superior explosivo',warmup:[],exercises:[{name:'Press banca velocidad',sets:'5×3 (50–60%)'},{name:'Remo barra',sets:'4×6'},{name:'Jalón al pecho',sets:'3×8'},{name:'Press militar ligero',sets:'3×5'},{name:'Face pulls',sets:'3×15'}]},
+  {day:10,title:'Último día pesado',warmup:[],exercises:[{name:'Sentadilla',sets:'3×3 (70–80%)'},{name:'Peso muerto',sets:'3×3'},{name:'Remo con barra',sets:'3×5'},{name:'Fondos',sets:'3×8'}]},
+  {day:11,title:'Pliometría + Agilidad',warmup:[],exercises:[{name:'Escalera 10 min',sets:''},{name:'Sprints 6×10 m',sets:''},{name:'Saltos verticales',sets:'4×4'},{name:'Saltos laterales',sets:'3×20 sec'}]},
+  {day:12,title:'Técnica de vóley + movilidad',warmup:[],exercises:[{name:'Saques, recepción, desplazamientos',sets:''},{name:'Estiramientos profundos',sets:''}]},
+  {day:13,title:'Activación corta',warmup:[],exercises:[{name:'20 min potencia baja',sets:''},{name:'Saltos suaves',sets:''},{name:'Core',sets:''},{name:'Estiramiento',sets:''}]},
+  {day:14,title:'Descanso total',warmup:[],exercises:[{name:'Descanso total',sets:''}]},
+  {day:15,title:'Competencia',warmup:[],exercises:[{name:'Entrada en calor: movilidad + sprints cortos + saltos suaves',sets:''}]}
+];
+
+// ===== STORAGE KEY =====
+const STORAGE_KEY = 'vf_15days_v1';
+
+// ===== UI BUILD =====
+const menuEl = document.getElementById('menu');
+const appEl = document.getElementById('app');
+const statusEl = document.getElementById('status');
+
+function buildMenu(){
+  PLAN.forEach(p=>{
+    const b = document.createElement('button');
+    b.textContent = `Día ${p.day}`;
+    b.dataset.day = p.day;
+    b.addEventListener('click', ()=> showDay(p.day));
+    menuEl.appendChild(b);
+  });
+}
+
+function loadData(){
+  try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }catch(e){return {};}
+}
+function saveData(obj){ localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); status('Guardado ✔'); }
+function status(txt){ statusEl.textContent = txt; setTimeout(()=> statusEl.textContent = 'Los datos se guardan localmente en tu navegador.',2000); }
+
+function showDay(day){
+  const p = PLAN.find(x=>x.day===day);
+  const data = loadData();
+  appEl.innerHTML = '';
+
+  const card = document.createElement('div'); card.className='card';
+  const title = document.createElement('h2'); title.textContent = `Día ${p.day} — ${p.title}`; card.appendChild(title);
+
+  if(p.warmup && p.warmup.length){
+    const w = document.createElement('div'); w.className='card'; w.innerHTML = '<h3>Calentamiento</h3><ul>'+p.warmup.map(x=>`<li>${x}</li>`).join('')+'</ul>'; card.appendChild(w);
+  }
+
+  // exercises list with checkbox, kg, note
+  const exList = document.createElement('div'); exList.className='card';
+  exList.innerHTML = '<h3>Ejercicios</h3>';
+
+  p.exercises.forEach((ex,i)=>{
+    const id = `d${p.day}_e${i}`;
+    const saved = (data[id] || {});
+    const el = document.createElement('div'); el.className='ex';
+    el.innerHTML = `<div class="left"><label><input type="checkbox" id="${id}_c"> <strong>${ex.name}</strong> <span style="color:#666;margin-left:8px">${ex.sets||''}</span></label></div>
+                    <div style="display:flex;gap:8px;align-items:center"><input type="number" id="${id}_kg" class="kg" placeholder="kg" value="${saved.kg||''}"> <input type="text" id="${id}_note" class="note" placeholder="notas" value="${saved.note||''}"></div>`;
+    exList.appendChild(el);
+    // restore checkbox
+    setTimeout(()=>{
+      const cb = document.getElementById(`${id}_c`);
+      const kg = document.getElementById(`${id}_kg`);
+      const note = document.getElementById(`${id}_note`);
+      if(saved.checked) cb.checked = true;
+      cb.addEventListener('change', ()=> quickSave(id));
+      kg.addEventListener('input', ()=> quickSave(id));
+      note.addEventListener('input', ()=> quickSave(id));
+    },0);
+  });
+
+  card.appendChild(exList);
+
+  if(p.power && p.power.length){
+    const pow = document.createElement('div'); pow.className='card'; pow.innerHTML = '<h3>Potencia</h3><ul>'+p.power.map(x=>`<li>${x}</li>`).join('')+'</ul>'; card.appendChild(pow);
+  }
+  if(p.core && p.core.length){
+    const cor = document.createElement('div'); cor.className='card'; cor.innerHTML = '<h3>Core</h3><ul>'+p.core.map(x=>`<li>${x}</li>`).join('')+'</ul>'; card.appendChild(cor);
+  }
+  if(p.notes){
+    const note = document.createElement('div'); note.className='card'; note.innerHTML = '<h3>Notas</h3><ul>'+p.notes.map(x=>`<li>${x}</li>`).join('')+'</ul>'; card.appendChild(note);
+  }
+
+  appEl.appendChild(card);
+}
+
+function quickSave(id){
+  const data = loadData();
+  const checked = document.getElementById(`${id}_c`).checked;
+  const kg = document.getElementById(`${id}_kg`).value;
+  const note = document.getElementById(`${id}_note`).value;
+  data[id] = {checked:checked, kg: kg || null, note: note || ''};
+  saveData(data);
+}
+
+// export/import/clear
+document.getElementById('exportAll').addEventListener('click', ()=>{
+  const data = localStorage.getItem(STORAGE_KEY) || '{}';
+  const blob = new Blob([data],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'volleyfit_15days_backup.json'; document.body.appendChild(a); a.click(); a.remove();
+});
+
+const importFile = document.getElementById('importFile');
+document.getElementById('importAll').addEventListener('click', ()=> importFile.click());
+importFile.addEventListener('change', (e)=>{
+  const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = ()=>{ try{ JSON.parse(r.result); localStorage.setItem(STORAGE_KEY,r.result); location.reload(); }catch(err){ alert('JSON inválido'); }}; r.readAsText(f);
+});
+
+document.getElementById('clearAll').addEventListener('click', ()=>{ if(confirm('Borrar todos los datos guardados?')){ localStorage.removeItem(STORAGE_KEY); location.reload(); }});
+
+// PWA install prompt handling
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e)=>{ e.preventDefault(); deferredPrompt = e; document.getElementById('installBtn').style.display='inline-block'; });
+document.getElementById('installBtn').addEventListener('click', async ()=>{ if(deferredPrompt){ deferredPrompt.prompt(); const choice = await deferredPrompt.userChoice; deferredPrompt = null; document.getElementById('installBtn').style.display='none'; }});
+
+// register service worker
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('service-worker.js').catch(()=>console.log('sw fail')); }
+
+// init
+buildMenu(); showDay(1);
+
+</script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>VolleyFit15 — Día 4 Movilidad Profunda</title>
+<style>
+  :root{--accent:#1565C0;--muted:#666;}
+  body{font-family:system-ui, -apple-system, Roboto, "Segoe UI", Arial; margin:0; padding:18px; background:#f7f9fb; color:#222;}
+  h1{margin:0 0 12px 0; color:var(--accent);}
+  .card{background:#fff;padding:12px;border-radius:10px;border:1px solid #e6eef9; margin-bottom:12px;}
+  .ex{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px dashed #eee;}
+  .ex:last-child{border-bottom:0;}
+  .ex-left{display:flex;align-items:center;gap:10px;flex:1;}
+  label{display:flex;gap:8px;align-items:center;cursor:pointer;}
+  .kg{width:80px;padding:6px;border-radius:6px;border:1px solid #ccc;}
+  .note{flex:1;padding:6px;border-radius:6px;border:1px solid #eee;background:#fafafa;}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+  button{background:var(--accent);color:white;border:0;padding:8px 10px;border-radius:8px;cursor:pointer;}
+  button.secondary{background:#e0e0e0;color:#111;}
+  .small{padding:6px 8px;font-size:14px;}
+  .status{font-size:13px;color:var(--muted);margin-top:8px;}
+  .muted{color:var(--muted);font-size:13px;}
+  .row{display:flex;gap:8px;align-items:center;}
+</style>
+</head>
+<body>
+  <h1>Día 4 — Movilidad Profunda (Cadera / Tobillo / T. Torácica)</h1>
+
+  <div class="card" id="exList"></div>
+
+  <div class="controls">
+    <button id="saveBtn" class="small">Guardar manual</button>
+    <button id="clearBtn" class="small secondary">Limpiar datos del día</button>
+    <button id="exportBtn" class="small secondary">Exportar (JSON)</button>
+    <button id="importBtn" class="small secondary">Importar (JSON)</button>
+    <input id="importFile" type="file" accept=".json" style="display:none"/>
+  </div>
+
+  <div class="status" id="status">Guardado automáticamente en el navegador (localStorage).</div>
+
+<script>
+/* ===== Datos de los ejercicios del Día 4 ===== */
+const EXERCISES = [
+  {id: '90_90', name: '90/90 Rotaciones (Internal/External)', notes: '2x8 por lado, lento'},
+  {id: 'hip_cars', name: 'Hip CARs (Controlled Articular Rotations)', notes: '2x5 por pierna'},
+  {id: 'lunge_ext', name: 'Estocada profunda con extensión de cadera', notes: '2x45s por lado'},
+  {id: 'deep_squat', name: 'Sentadilla profunda sostenida', notes: '1x2min'},
+  {id: 'knee_wall', name: 'Rodilla a la pared (dorsiflexión)', notes: '3x12 por pierna'},
+  {id: 'loaded_ankle', name: 'Movilidad de tobillo con carga', notes: '2x10 por lado'},
+  {id: 'soleus_stretch', name: 'Estiramiento de soleo profundo', notes: '1x60s'},
+  {id: 'tspine_rot', name: 'Rotaciones torácicas en cuadrupedia', notes: '2x10 por lado'},
+  {id: 'foam_tspine', name: 'Extensión torácica sobre foam roller', notes: '2x45s'},
+  {id: 'book_openers', name: 'Book Openers (apertura libro)', notes: '2x8 por lado'},
+  {id: 'diaphragmatic', name: 'Respiración diafragmática + extensión', notes: '1x10 respiraciones'}
+];
+
+/* ===== LocalStorage key (puede cambiarse si querés aislar por usuario/plan) ===== */
+const STORAGE_KEY = 'vf_day4_mobility_v1';
+
+/* ===== Renderizado inicial ===== */
+const exList = document.getElementById('exList');
+
+function loadData(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch(e) {
+    console.error('Error leyendo storage', e);
+    return {};
+  }
+}
+
+function saveData(obj){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
+  showStatus('Guardado ✔️');
+  setTimeout(()=> showStatus('Guardado automáticamente en el navegador (localStorage).'), 1500);
+}
+
+function showStatus(txt){
+  document.getElementById('status').textContent = txt;
+}
+
+function render(){
+  const data = loadData();
+  exList.innerHTML = '';
+  EXERCISES.forEach((ex, idx) => {
+    const saved = (data[ex.id] || {});
+    const div = document.createElement('div');
+    div.className = 'ex';
+    div.innerHTML = `
+      <div class="ex-left">
+        <label>
+          <input type="checkbox" class="chk" data-id="${ex.id}" ${saved.done ? 'checked' : ''}/>
+          <div>
+            <strong>${ex.name}</strong><div class="muted">${ex.notes}</div>
+          </div>
+        </label>
+      </div>
+      <div class="row" style="gap:6px;">
+        <input type="number" step="0.5" min="0" placeholder="kg (opcional)" class="kg" data-id="${ex.id}" value="${saved.kg || ''}" style="width:88px;padding:6px;border-radius:6px;border:1px solid #ccc;"/>
+        <input type="text" placeholder="Notas cortas" class="note" data-id="${ex.id}" value="${saved.note || ''}"/>
+      </div>
+    `;
+    exList.appendChild(div);
+  });
+
+  // attach listeners
+  document.querySelectorAll('.chk').forEach(el => el.addEventListener('change', onChange));
+  document.querySelectorAll('.kg').forEach(el => el.addEventListener('input', onChange));
+  document.querySelectorAll('.note').forEach(el => el.addEventListener('input', onChange));
+}
+
+/* ===== Evento cuando el usuario cambia algo ===== */
+let autosaveTimer;
+function onChange(e){
+  // debounce autosave for better UX
+  clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(()=> {
+    const current = loadData();
+    EXERCISES.forEach(ex => {
+      const checkbox = document.querySelector(`.chk[data-id="${ex.id}"]`);
+      const kg = document.querySelector(`.kg[data-id="${ex.id}"]`);
+      const note = document.querySelector(`.note[data-id="${ex.id}"]`);
+      current[ex.id] = {
+        done: !!(checkbox && checkbox.checked),
+        kg: kg && kg.value ? Number(kg.value) : null,
+        note: note && note.value ? note.value : ''
+      };
+    });
+    saveData(current);
+  }, 300);
+}
+
+/* ===== Controls ===== */
+document.getElementById('saveBtn').addEventListener('click', ()=> {
+  // fuerza guardar ahora
+  const current = loadData();
+  EXERCISES.forEach(ex => {
+    const checkbox = document.querySelector(`.chk[data-id="${ex.id}"]`);
+    const kg = document.querySelector(`.kg[data-id="${ex.id}"]`);
+    const note = document.querySelector(`.note[data-id="${ex.id}"]`);
+    current[ex.id] = {
+      done: !!(checkbox && checkbox.checked),
+      kg: kg && kg.value ? Number(kg.value) : null,
+      note: note && note.value ? note.value : ''
+    };
+  });
+  saveData(current);
+});
+
+document.getElementById('clearBtn').addEventListener('click', ()=> {
+  if(!confirm('Seguro querés eliminar todos los datos guardados de este día?')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  render();
+  showStatus('Datos del día eliminados');
+});
+
+document.getElementById('exportBtn').addEventListener('click', ()=> {
+  const blob = new Blob([localStorage.getItem(STORAGE_KEY) || '{}'], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'vf_day4_records.json';
+  document.body.appendChild(a); a.click(); a.remove();
+});
+
+document.getElementById('importBtn').addEventListener('click', ()=> {
+  document.getElementById('importFile').click();
+});
+document.getElementById('importFile').addEventListener('change', (e)=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    try {
+      const obj = JSON.parse(ev.target.result);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
+      render();
+      showStatus('Importado ✔️');
+    } catch(err){
+      alert('Archivo inválido');
+    }
+  };
+  reader.readAsText(f);
+});
+
+/* ===== Inicialización ===== */
+render();
+
+/* ===== Consejo: sincronización opcional =====
+   Si en el futuro querés guardar en la nube, podés:
+   - enviar el objeto JSON (localStorage) a tu backend (POST /save)
+   - o integrarlo con Google Drive / Dropbox
+*/
+</script>
+</body>
+</html>

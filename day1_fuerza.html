@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Día 1 – Fuerza Tren Inferior</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f2f2f2;
+        margin: 0;
+        padding: 20px;
+    }
+    h1 {
+        text-align: center;
+    }
+    .exercise {
+        background: white;
+        padding: 12px;
+        margin-bottom: 10px;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .exercise label {
+        flex: 1;
+        margin-left: 10px;
+    }
+    .exercise input[type="number"] {
+        width: 70px;
+        padding: 5px;
+    }
+    .controls {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    button {
+        padding: 10px 14px;
+        border: none;
+        background: #007BFF;
+        color: white;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+    button:hover {
+        background: #0056d2;
+    }
+    .status {
+        margin-top: 10px;
+        font-size: 14px;
+        color: green;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>Día 1 – Fuerza Tren Inferior</h1>
+<p><strong>Enfocado en salto y estabilidad</strong></p>
+
+<h3>Calentamiento (8 min)</h3>
+<ul>
+    <li>Movilidad de cadera y tobillo</li>
+    <li>2×15 sentadillas con peso corporal</li>
+    <li>Skips + saltos suaves en el lugar</li>
+</ul>
+
+<h3>Fuerza</h3>
+
+<div id="exList"></div>
+
+<h3>Potencia</h3>
+
+<ul>
+    <li>Saltos al cajón: 4×5</li>
+    <li>Saltos laterales sobre línea: 3×20 sec</li>
+</ul>
+
+<h3>Core Estabilizador</h3>
+
+<ul>
+    <li>Plancha frontal: 3×40 sec</li>
+    <li>Plancha lateral: 3×30 sec por lado</li>
+</ul>
+
+<!-- Botones -->
+<div class="controls">
+    <button id="clearBtn">Limpiar datos</button>
+    <button id="exportBtn">Exportar JSON</button>
+    <button id="importBtn">Importar JSON</button>
+    <input id="importFile" type="file" accept=".json" style="display:none" />
+</div>
+
+<div id="status" class="status"></div>
+
+<script>
+const STORAGE_KEY = "vf_day1_fuerza_v1";
+
+// Lista de ejercicios de fuerza
+const exercises = [
+    "Sentadilla con barra – 4×5 (80% 1RM)",
+    "Peso muerto rumano – 4×6",
+    "Zancadas caminando con mancuernas – 3×10 por pierna",
+    "Prensa – 3×8",
+    "Elevación de gemelos – 4×12"
+];
+
+// Armado dinámico de ejercicios
+function renderExercises() {
+    const container = document.getElementById("exList");
+    container.innerHTML = "";
+
+    const savedData = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+
+    exercises.forEach((name, index) => {
+        const box = document.createElement("div");
+        box.className = "exercise";
+
+        const check = document.createElement("input");
+        check.type = "checkbox";
+        check.checked = savedData[index]?.checked || false;
+
+        const label = document.createElement("label");
+        label.innerText = name;
+
+        const kgInput = document.createElement("input");
+        kgInput.type = "number";
+        kgInput.placeholder = "Kg";
+        kgInput.value = savedData[index]?.kg || "";
+
+        // Guardado automático
+        check.addEventListener("change", saveState);
+        kgInput.addEventListener("input", saveState);
+
+        box.appendChild(check);
+        box.appendChild(label);
+        box.appendChild(kgInput);
+
+        container.appendChild(box);
+    });
+}
+
+function saveState() {
+    const data = {};
+    document.querySelectorAll("#exList .exercise").forEach((div, i) => {
+        const check = div.querySelector('input[type="checkbox"]').checked;
+        const kg = div.querySelector('input[type="number"]').value;
+        data[i] = { checked: check, kg: kg };
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    document.getElementById("status").textContent = "Guardado ✔";
+}
+
+document.getElementById("clearBtn").addEventListener("click", () => {
+    localStorage.removeItem(STORAGE_KEY);
+    renderExercises();
+    document.getElementById("status").textContent = "Datos eliminados";
+});
+
+// Exportar
+document.getElementById("exportBtn").addEventListener("click", () => {
+    const data = localStorage.getItem(STORAGE_KEY);
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "day1_fuerza_backup.json";
+    a.click();
+});
+
+// Importar
+document.getElementById("importBtn").addEventListener("click", () => {
+    document.getElementById("importFile").click();
+});
+
+document.getElementById("importFile").addEventListener("change", function () {
+    const file = this.files[0];
+    const reader = new FileReader();
+    reader.onload = () => {
+        localStorage.setItem(STORAGE_KEY, reader.result);
+        renderExercises();
+        document.getElementById("status").textContent = "Importado correctamente ✔";
+    };
+    reader.readAsText(file);
+});
+
+// Inicializar
+renderExercises();
+</script>
+
+</body>
+</html>
